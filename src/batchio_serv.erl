@@ -32,6 +32,9 @@ init([]) ->
         {ok, undefined} -> group_leader();
         {ok, Term} -> Term
     end,
+    put(total, 0),
+    put(sent, 0),
+    put(dropped, 0),
     set_active(Pid),
     {ok, #state{box=Pid, leader=Leader}}.
 
@@ -43,8 +46,11 @@ handle_cast(_Msg, State) ->
     {noreply, State}.
 
 
-handle_info({mail,Box,Msgs,_Count,_Drops}, S=#state{box=Box, leader=Leader}) ->
+handle_info({mail,Box,Msgs,Count,Drops}, S=#state{box=Box, leader=Leader}) ->
     io:put_chars(Leader, Msgs),
+    put(total, get(total)+Count+Drops),
+    put(sent, get(sent)+Count),
+    put(dropped, get(dropped)+Drops),
     set_active(Box),
     {noreply, S};
 
