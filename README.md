@@ -1,4 +1,4 @@
-# benchio #
+# batchio #
 
 Experimental project to batch calls to io:format/2 in order to save time over
 communication and whatnot whenever the central io server of an Erlang node
