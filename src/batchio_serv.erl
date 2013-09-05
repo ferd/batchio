@@ -72,6 +72,13 @@ set_active(Box) ->
 
 accumulator(Text, {Current, Max}) ->
     case iolist_size(Text)+Current of
-        N when N > Max -> skip;
-        N -> {{ok, Text}, {N,Max}}
+        N when N > Max ->
+            %% it's possible the entry is > than the buffer size. When that
+            %% happens, we let it through on its own to avoid blocking entirely
+            case Current of
+                0 -> {{ok, Text}, {N, Max}};
+                _ -> skip
+            end;
+        N ->
+            {{ok, Text}, {N,Max}}
     end.
