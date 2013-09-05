@@ -1,6 +1,6 @@
 {application, batchio, [
  {description, "io:format middle-man that batches output sent to the io server for better throughput (or so we hope)"},
- {vsn, "0.1.0"},
+ {vsn, "1.0.0"},
  {applications, [stdlib, kernel, pobox]},
  {registered, [batchio, batchio_box]},
  {mod, {batchio_app,[]}},

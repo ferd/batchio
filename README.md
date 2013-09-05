@@ -10,7 +10,7 @@ becomes a bottleneck
 
 ## running tests ##
 
-No tests exist at this time. Only benchmarks! This needs to be added.
+`rebar get-deps compile && rebar ct skip_deps=true`
 
 ## using ##
 
@@ -19,6 +19,29 @@ application:start(pobox).
 application:start(batchio).
 batchio:format("abc: ~p~n", [myreq]).
 ```
+
+Note that if batchio isn't started, `batchio:format/1-2` will redirect calls
+to `io:format/1-2`.
+
+## configuration ##
+
+All configurations can be done using Erlang's OTP applications' usual `env`
+variables.
+
+- `buffer`: Before starting batchio, you can define a maximal buffer size by
+  setting the env variable `buffer` to an integer. As many slots will be
+  allocated in batchio's queue buffer. Note that this size cannot be changed
+  dynamically at this time, but is on the roadmap for whenever someone will
+  need it.
+- `page_size`: This variable allows to define how many bytes will be sent on
+  each batch for the messages. This value can be modified dynamically, on a
+  global level (which is fine because batchio exists globally only)
+- `leader`: determines where to send the IO data. By default, batchio will use
+  its original `group_leader()` value for that (its application controller,
+  forwarding to either the local `user` process, or a remote one depending on
+  how the node has been started (see
+  http://ferd.ca/repl-a-bit-more-and-less-than-that.html for details).
+  This value cannot be changed dynamically yet.
 
 ## Benchmarks
 
@@ -174,4 +197,29 @@ process will store incremental data in the process dictionary under the keys
 `total`, `sent`, and `dropped`. Using `erlang:process_info/2` on that process
 will allow someone to inspect the lossiness of items in flight, in absolute terms.
 
+## Roadmap ##
 
+- Allow dynamic configuration changes in a proper API
+- Test configuration changes
+- Figure out multiple-encoding support. Right now, batchio assumes that all
+  output will use the same final encoding by just calling `io_lib:format/2`
+  at the call site, rather than at the IO server (which is faster, but possibly
+  wrong).
+
+## Contributing ##
+
+Send in a pull request including the changes, tests, and a description of what
+the changes do (and why it is necessary).
+
+The test suite as it is is a bit complex, as it sets up middlemen group leaders
+to forward IO properly.
+
+## Changelog ##
+
+- 1.0.0: Proper `page_size` overflow handling. In 0.1.0, a message larger than
+ the page size would have never made it through and would have needed to be
+ dropped from the buffer (which would have needed to fill up) before message
+ output could resume. This version makes it so that when a message too large is
+ found, the current page is sent, and then the message larger than the
+ `page_size` is sent alone.
+- 0.1.0: Initial commit
